@@ -279,6 +279,44 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     });
   };
 
+  const handleAddColumn = (dropdownId) => {
+    setNavigationData(prev => {
+      const newDropdowns = prev.dropdowns.map(dropdown => {
+        if (dropdown._id === dropdownId) {
+          const columns = dropdown.dropdown.columns || [];
+          
+          // Create a new column with a unique ID
+          const newColumn = {
+            _id: `col-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            type: 'links',
+            title: `Column ${columns.length + 1}`,
+            links: [],
+            position: columns.length + 1,
+          };
+          
+          return {
+            ...dropdown,
+            dropdown: {
+              ...dropdown.dropdown,
+              columns: [...columns, newColumn],
+            },
+          };
+        }
+        return dropdown;
+      });
+      
+      return {
+        ...prev,
+        dropdowns: newDropdowns,
+      };
+    });
+    
+    toast({
+      title: "Column added",
+      description: "New column has been added to the dropdown.",
+    });
+  };
+
   const handleAddMenuItem = (values: MenuItemFormValues) => {
     const newMenuItem: MenuItem = {
       title: values.title,
@@ -434,6 +472,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
                           <DropdownEditor
                             dropdown={itemDropdown}
                             onUpdateLink={handleUpdateLink}
+                            onAddColumn={handleAddColumn}
                           />
                         )}
                       </div>

@@ -4,11 +4,15 @@ import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortabl
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MenuDropdown } from '@/types/navigation';
-import { ChevronDown, Grid3X3 } from 'lucide-react';
+import { ChevronDown, Grid3X3, Plus } from 'lucide-react';
 import DropdownColumn from './DropdownColumn';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 // Removed TypeScript interface and props typing
-const DropdownEditor = ({ dropdown, onUpdateLink }) => {
+const DropdownEditor = ({ dropdown, onUpdateLink, onAddColumn }) => {
+  const { toast } = useToast();
+
   // Early return if dropdown is undefined or null
   if (!dropdown) {
     return (
@@ -23,6 +27,19 @@ const DropdownEditor = ({ dropdown, onUpdateLink }) => {
   }
 
   const columnIds = dropdown.dropdown?.columns?.map(column => `${dropdown._id}-${column._id}`) || [];
+  
+  const handleAddColumn = () => {
+    if (dropdown.dropdown?.columns?.length >= 4) {
+      toast({
+        variant: "destructive",
+        title: "Maximum columns exceeded",
+        description: "Maximum of 4 columns allowed per dropdown.",
+      });
+      return;
+    }
+    
+    onAddColumn(dropdown._id);
+  };
 
   return (
     <Card className="mt-4 bg-blue-50 border-blue-200">
@@ -42,6 +59,16 @@ const DropdownEditor = ({ dropdown, onUpdateLink }) => {
               <Grid3X3 size={12} />
               {dropdown.dropdown?.columns?.length || 0}/4 columns
             </Badge>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleAddColumn} 
+              className="flex items-center gap-1"
+              disabled={dropdown.dropdown?.columns?.length >= 4}
+            >
+              <Plus size={14} />
+              Add Column
+            </Button>
           </div>
         </div>
       </CardHeader>
