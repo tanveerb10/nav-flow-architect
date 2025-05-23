@@ -8,12 +8,8 @@ import { GripVertical, Image, Link } from 'lucide-react';
 import DraggableLink from './DraggableLink';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 
-interface DropdownColumnProps {
-  column: DropdownColumnType;
-  dropdownId: string;
-}
-
-const DropdownColumn: React.FC<DropdownColumnProps> = ({ column, dropdownId }) => {
+// Removed TypeScript interface and props typing
+const DropdownColumn = ({ column, dropdownId, onUpdateLink }) => {
   const {
     attributes,
     listeners,
@@ -87,6 +83,7 @@ const DropdownColumn: React.FC<DropdownColumnProps> = ({ column, dropdownId }) =
                       key={link._id} 
                       link={link} 
                       columnId={column._id} 
+                      onUpdateLink={onUpdateLink}
                     />
                   ))}
               </SortableContext>

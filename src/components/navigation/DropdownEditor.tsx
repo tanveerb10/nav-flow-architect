@@ -3,16 +3,12 @@ import React from 'react';
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MenuDropdown, NavigationLink } from '@/types/navigation';
+import { MenuDropdown } from '@/types/navigation';
 import { ChevronDown, Grid3X3 } from 'lucide-react';
 import DropdownColumn from './DropdownColumn';
 
-interface DropdownEditorProps {
-  dropdown: MenuDropdown;
-  onUpdateLink?: (linkId: string, updatedLink: Partial<NavigationLink>) => void;
-}
-
-const DropdownEditor: React.FC<DropdownEditorProps> = ({ dropdown, onUpdateLink }) => {
+// Removed TypeScript interface and props typing
+const DropdownEditor = ({ dropdown, onUpdateLink }) => {
   const columnIds = dropdown.dropdown.columns.map(column => `${dropdown._id}-${column._id}`);
 
   return (
@@ -54,7 +50,7 @@ const DropdownEditor: React.FC<DropdownEditorProps> = ({ dropdown, onUpdateLink 
         {dropdown.dropdown.columns.length === 0 && (
           <div className="text-center py-8 text-gray-400">
             <Grid3X3 size={48} className="mx-auto mb-3 opacity-50" />
-            <p>No columns created yet</p>
+            <p>No links added yet</p>
           </div>
         )}
       </CardContent>
