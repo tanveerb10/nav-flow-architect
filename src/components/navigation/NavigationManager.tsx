@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   DndContext,
@@ -422,17 +421,24 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
               <SortableContext items={menuItemIds} strategy={verticalListSortingStrategy}>
                 {navigationData.menu
                   .sort((a, b) => a.position - b.position)
-                  .map((item) => (
-                    <div key={item._id}>
-                      <MenuItemCard item={item} />
-                      {item.hasDropdown && (
-                        <DropdownEditor
-                          dropdown={navigationData.dropdowns.find(d => d.menuTitle === item.title)!}
-                          onUpdateLink={handleUpdateLink}
-                        />
-                      )}
-                    </div>
-                  ))}
+                  .map((item) => {
+                    // Find the dropdown for this menu item if it exists
+                    const itemDropdown = item.hasDropdown 
+                      ? navigationData.dropdowns.find(d => d.menuTitle === item.title)
+                      : null;
+                    
+                    return (
+                      <div key={item._id}>
+                        <MenuItemCard item={item} />
+                        {item.hasDropdown && itemDropdown && (
+                          <DropdownEditor
+                            dropdown={itemDropdown}
+                            onUpdateLink={handleUpdateLink}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
               </SortableContext>
             </div>
           </CardContent>

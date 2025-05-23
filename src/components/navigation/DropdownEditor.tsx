@@ -9,7 +9,20 @@ import DropdownColumn from './DropdownColumn';
 
 // Removed TypeScript interface and props typing
 const DropdownEditor = ({ dropdown, onUpdateLink }) => {
-  const columnIds = dropdown.dropdown.columns.map(column => `${dropdown._id}-${column._id}`);
+  // Early return if dropdown is undefined or null
+  if (!dropdown) {
+    return (
+      <Card className="mt-4 bg-red-50 border-red-200">
+        <CardContent className="py-6">
+          <div className="text-center text-red-500">
+            <p>Error: Dropdown data is missing</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const columnIds = dropdown.dropdown?.columns?.map(column => `${dropdown._id}-${column._id}`) || [];
 
   return (
     <Card className="mt-4 bg-blue-50 border-blue-200">
@@ -27,7 +40,7 @@ const DropdownEditor = ({ dropdown, onUpdateLink }) => {
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="flex items-center gap-1">
               <Grid3X3 size={12} />
-              {dropdown.dropdown.columns.length}/4 columns
+              {dropdown.dropdown?.columns?.length || 0}/4 columns
             </Badge>
           </div>
         </div>
@@ -35,8 +48,8 @@ const DropdownEditor = ({ dropdown, onUpdateLink }) => {
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
-            {dropdown.dropdown.columns
-              .sort((a, b) => a.position - b.position)
+            {dropdown.dropdown?.columns
+              ?.sort((a, b) => a.position - b.position)
               .map((column) => (
                 <DropdownColumn 
                   key={column._id} 
@@ -47,7 +60,7 @@ const DropdownEditor = ({ dropdown, onUpdateLink }) => {
               ))}
           </SortableContext>
         </div>
-        {dropdown.dropdown.columns.length === 0 && (
+        {(!dropdown.dropdown?.columns || dropdown.dropdown.columns.length === 0) && (
           <div className="text-center py-8 text-gray-400">
             <Grid3X3 size={48} className="mx-auto mb-3 opacity-50" />
             <p>No links added yet</p>
