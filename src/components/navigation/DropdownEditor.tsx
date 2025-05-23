@@ -3,15 +3,16 @@ import React from 'react';
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MenuDropdown } from '@/types/navigation';
+import { MenuDropdown, NavigationLink } from '@/types/navigation';
 import { ChevronDown, Grid3X3 } from 'lucide-react';
 import DropdownColumn from './DropdownColumn';
 
 interface DropdownEditorProps {
   dropdown: MenuDropdown;
+  onUpdateLink?: (linkId: string, updatedLink: Partial<NavigationLink>) => void;
 }
 
-const DropdownEditor: React.FC<DropdownEditorProps> = ({ dropdown }) => {
+const DropdownEditor: React.FC<DropdownEditorProps> = ({ dropdown, onUpdateLink }) => {
   const columnIds = dropdown.dropdown.columns.map(column => `${dropdown._id}-${column._id}`);
 
   return (
@@ -45,6 +46,7 @@ const DropdownEditor: React.FC<DropdownEditorProps> = ({ dropdown }) => {
                   key={column._id} 
                   column={column} 
                   dropdownId={dropdown._id}
+                  onUpdateLink={onUpdateLink}
                 />
               ))}
           </SortableContext>

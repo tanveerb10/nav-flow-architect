@@ -4,17 +4,21 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card } from '@/components/ui/card';
 import { NavigationLink } from '@/types/navigation';
-import { GripVertical, ExternalLink, ChevronDown, ChevronRight } from 'lucide-react';
+import { GripVertical, ExternalLink, ChevronDown, ChevronRight, Edit2, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Input } from '@/components/ui/input';
 
 interface DraggableLinkProps {
   link: NavigationLink;
   columnId: string;
+  onUpdateLink?: (linkId: string, updatedLink: Partial<NavigationLink>) => void;
 }
 
-const DraggableLink: React.FC<DraggableLinkProps> = ({ link, columnId }) => {
+const DraggableLink: React.FC<DraggableLinkProps> = ({ link, columnId, onUpdateLink }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedUrl, setEditedUrl] = useState(link.url);
   
   const {
     attributes,
@@ -35,6 +39,18 @@ const DraggableLink: React.FC<DraggableLinkProps> = ({ link, columnId }) => {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+  };
+
+  const handleSaveUrl = () => {
+    if (onUpdateLink && editedUrl !== link.url) {
+      onUpdateLink(link._id, { url: editedUrl });
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditedUrl(link.url);
+    setIsEditing(false);
   };
 
   return (
@@ -77,9 +93,45 @@ const DraggableLink: React.FC<DraggableLinkProps> = ({ link, columnId }) => {
             <div className="mt-3 pt-3 border-t text-sm text-gray-500">
               <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2">
                 <span className="font-medium">URL:</span>
-                <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
-                  {link.url}
-                </a>
+                {isEditing ? (
+                  <div className="flex items-center gap-2">
+                    <Input 
+                      value={editedUrl}
+                      onChange={(e) => setEditedUrl(e.target.value)}
+                      className="h-8 py-1 text-sm"
+                    />
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="h-7 w-7 p-1" 
+                      onClick={handleSaveUrl}
+                    >
+                      <Check size={14} className="text-green-600" />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="h-7 w-7 p-1" 
+                      onClick={handleCancelEdit}
+                    >
+                      <X size={14} className="text-red-600" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                      {link.url}
+                    </a>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="h-7 w-7 p-1" 
+                      onClick={() => setIsEditing(true)}
+                    >
+                      <Edit2 size={14} className="text-gray-500" />
+                    </Button>
+                  </div>
+                )}
                 
                 <span className="font-medium">ID:</span>
                 <span className="font-mono text-xs bg-gray-100 p-1 rounded">{link._id}</span>

@@ -17,22 +17,54 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { NavigationData } from '@/types/navigation';
+import { NavigationData, NavigationLink, MenuItem } from '@/types/navigation';
 import MenuItemCard from './MenuItemCard';
 import DropdownEditor from './DropdownEditor';
-import { Menu, Save, AlertTriangle } from 'lucide-react';
+import { Menu, Save, AlertTriangle, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
+import { 
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage
+} from '@/components/ui/form';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 interface NavigationManagerProps {
   initialData: NavigationData;
 }
 
+// Form schema for adding new menu item
+const menuItemSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  url: z.string().min(1, 'URL is required'),
+  hasDropdown: z.boolean().default(false),
+});
+
+type MenuItemFormValues = z.infer<typeof menuItemSchema>;
+
 const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) => {
   const [navigationData, setNavigationData] = useState<NavigationData>(initialData);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [isAddingMenu, setIsAddingMenu] = useState(false);
   const { toast } = useToast();
+
+  // Setup form for adding menu item
+  const form = useForm<MenuItemFormValues>({
+    resolver: zodResolver(menuItemSchema),
+    defaultValues: {
+      title: '',
+      url: '/',
+      hasDropdown: false,
+    },
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -213,6 +245,64 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     }
   };
 
+  const handleUpdateLink = (linkId: string, updatedData: Partial<NavigationLink>) => {
+    setNavigationData(prev => {
+      const newDropdowns = prev.dropdowns.map(dropdown => {
+        const newColumns = dropdown.dropdown.columns.map(column => {
+          const updatedLinks = column.links.map(link => {
+            if (link._id === linkId) {
+              return { ...link, ...updatedData };
+            }
+            return link;
+          });
+          
+          return { ...column, links: updatedLinks };
+        });
+        
+        return {
+          ...dropdown,
+          dropdown: {
+            ...dropdown.dropdown,
+            columns: newColumns,
+          },
+        };
+      });
+      
+      return {
+        ...prev,
+        dropdowns: newDropdowns,
+      };
+    });
+    
+    toast({
+      title: "Link updated",
+      description: "Link URL has been updated successfully.",
+    });
+  };
+
+  const handleAddMenuItem = (values: MenuItemFormValues) => {
+    const newMenuItem: MenuItem = {
+      title: values.title,
+      url: values.url,
+      hasDropdown: values.hasDropdown,
+      position: navigationData.menu.length + 1,
+      _id: `new-menu-${Date.now()}`, // Generate a temporary ID
+    };
+
+    setNavigationData(prev => ({
+      ...prev,
+      menu: [...prev.menu, newMenuItem],
+    }));
+
+    form.reset();
+    setIsAddingMenu(false);
+    
+    toast({
+      title: "Menu item added",
+      description: `"${newMenuItem.title}" has been added to the menu.`,
+    });
+  };
+
   const handleSave = () => {
     console.log('Saving navigation data:', navigationData);
     toast({
@@ -247,11 +337,87 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
         onDragOver={handleDragOver}
       >
         <Card>
-          <CardHeader>
-            <h2 className="text-lg font-semibold text-gray-900">Main Menu Items</h2>
-            <p className="text-sm text-gray-600">Drag to reorder menu items</p>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Main Menu Items</h2>
+              <p className="text-sm text-gray-600">Drag to reorder menu items</p>
+            </div>
+            
+            <Button 
+              onClick={() => setIsAddingMenu(!isAddingMenu)} 
+              variant="outline" 
+              className="flex items-center gap-2"
+            >
+              <Plus size={16} />
+              Add Menu Item
+            </Button>
           </CardHeader>
+          
           <CardContent>
+            {isAddingMenu && (
+              <Card className="mb-6 border-blue-200 bg-blue-50">
+                <CardContent className="pt-6">
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(handleAddMenuItem)} className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="title"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Menu Title</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g. Products" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="url"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>URL</FormLabel>
+                              <FormControl>
+                                <Input placeholder="/products" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <input
+                          id="hasDropdown"
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          checked={form.watch("hasDropdown")}
+                          onChange={e => form.setValue("hasDropdown", e.target.checked)}
+                        />
+                        <label htmlFor="hasDropdown" className="text-sm text-gray-700">
+                          Has dropdown menu
+                        </label>
+                      </div>
+                      
+                      <div className="flex justify-end space-x-2 pt-2">
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          onClick={() => setIsAddingMenu(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit">Add Menu Item</Button>
+                      </div>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+            )}
+            
             <div className="space-y-4">
               <SortableContext items={menuItemIds} strategy={verticalListSortingStrategy}>
                 {navigationData.menu
@@ -262,6 +428,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
                       {item.hasDropdown && (
                         <DropdownEditor
                           dropdown={navigationData.dropdowns.find(d => d.menuTitle === item.title)!}
+                          onUpdateLink={handleUpdateLink}
                         />
                       )}
                     </div>
