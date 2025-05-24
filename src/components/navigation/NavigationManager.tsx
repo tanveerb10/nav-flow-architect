@@ -317,6 +317,125 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     });
   };
 
+  const handleDeleteLink = (dropdownId, columnId, linkId) => {
+    setNavigationData(prev => {
+      const newDropdowns = prev.dropdowns.map(dropdown => {
+        if (dropdown._id === dropdownId) {
+          const newColumns = dropdown.dropdown.columns.map(column => {
+            if (column._id === columnId) {
+              const filteredLinks = column.links.filter(link => link._id !== linkId);
+              return {
+                ...column,
+                links: updatePositions(filteredLinks),
+              };
+            }
+            return column;
+          });
+          
+          return {
+            ...dropdown,
+            dropdown: {
+              ...dropdown.dropdown,
+              columns: newColumns,
+            },
+          };
+        }
+        return dropdown;
+      });
+      
+      return {
+        ...prev,
+        dropdowns: newDropdowns,
+      };
+    });
+    
+    toast({
+      title: "Link deleted",
+      description: "Link has been removed from the dropdown.",
+    });
+  };
+
+  const handleAddLink = (dropdownId, columnId) => {
+    setNavigationData(prev => {
+      const newDropdowns = prev.dropdowns.map(dropdown => {
+        if (dropdown._id === dropdownId) {
+          const newColumns = dropdown.dropdown.columns.map(column => {
+            if (column._id === columnId) {
+              const newLink = {
+                _id: `link-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                label: 'New Link',
+                url: '/',
+                position: column.links.length + 1,
+              };
+              
+              return {
+                ...column,
+                links: [...column.links, newLink],
+              };
+            }
+            return column;
+          });
+          
+          return {
+            ...dropdown,
+            dropdown: {
+              ...dropdown.dropdown,
+              columns: newColumns,
+            },
+          };
+        }
+        return dropdown;
+      });
+      
+      return {
+        ...prev,
+        dropdowns: newDropdowns,
+      };
+    });
+    
+    toast({
+      title: "Link added",
+      description: "New link has been added to the column.",
+    });
+  };
+
+  const handleUpdateColumn = (dropdownId, columnId, updatedData) => {
+    setNavigationData(prev => {
+      const newDropdowns = prev.dropdowns.map(dropdown => {
+        if (dropdown._id === dropdownId) {
+          const newColumns = dropdown.dropdown.columns.map(column => {
+            if (column._id === columnId) {
+              return {
+                ...column,
+                ...updatedData,
+              };
+            }
+            return column;
+          });
+          
+          return {
+            ...dropdown,
+            dropdown: {
+              ...dropdown.dropdown,
+              columns: newColumns,
+            },
+          };
+        }
+        return dropdown;
+      });
+      
+      return {
+        ...prev,
+        dropdowns: newDropdowns,
+      };
+    });
+    
+    toast({
+      title: "Column updated",
+      description: "Column title has been updated.",
+    });
+  };
+
   const handleAddMenuItem = (values: MenuItemFormValues) => {
     const newMenuItem: MenuItem = {
       title: values.title,
@@ -473,6 +592,9 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
                             dropdown={itemDropdown}
                             onUpdateLink={handleUpdateLink}
                             onAddColumn={handleAddColumn}
+                            onDeleteLink={handleDeleteLink}
+                            onAddLink={handleAddLink}
+                            onUpdateColumn={handleUpdateColumn}
                           />
                         )}
                       </div>

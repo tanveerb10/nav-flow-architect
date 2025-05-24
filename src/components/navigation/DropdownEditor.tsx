@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
 // Removed TypeScript interface and props typing
-const DropdownEditor = ({ dropdown, onUpdateLink, onAddColumn }) => {
+const DropdownEditor = ({ dropdown, onUpdateLink, onAddColumn, onDeleteLink, onAddLink, onUpdateColumn }) => {
   const { toast } = useToast();
 
   // Early return if dropdown is undefined or null
@@ -83,6 +83,9 @@ const DropdownEditor = ({ dropdown, onUpdateLink, onAddColumn }) => {
                   column={column} 
                   dropdownId={dropdown._id}
                   onUpdateLink={onUpdateLink}
+                  onDeleteLink={onDeleteLink}
+                  onAddLink={onAddLink}
+                  onUpdateColumn={onUpdateColumn}
                 />
               ))}
           </SortableContext>

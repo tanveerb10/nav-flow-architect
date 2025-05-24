@@ -4,21 +4,31 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card } from '@/components/ui/card';
 import { NavigationLink } from '@/types/navigation';
-import { GripVertical, ExternalLink, ChevronDown, ChevronRight, Edit2, Check, X } from 'lucide-react';
+import { GripVertical, ExternalLink, ChevronDown, ChevronRight, Edit2, Check, X, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 interface DraggableLinkProps {
   link: NavigationLink;
   columnId: string;
+  dropdownId?: string;
   onUpdateLink?: (linkId: string, updatedLink: Partial<NavigationLink>) => void;
+  onDeleteLink?: (dropdownId: string, columnId: string, linkId: string) => void;
 }
 
-const DraggableLink: React.FC<DraggableLinkProps> = ({ link, columnId, onUpdateLink }) => {
+const DraggableLink: React.FC<DraggableLinkProps> = ({ 
+  link, 
+  columnId, 
+  dropdownId,
+  onUpdateLink, 
+  onDeleteLink 
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedUrl, setEditedUrl] = useState(link.url);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   
   const {
     attributes,
@@ -53,6 +63,13 @@ const DraggableLink: React.FC<DraggableLinkProps> = ({ link, columnId, onUpdateL
     setIsEditing(false);
   };
 
+  const handleDeleteLink = () => {
+    if (onDeleteLink && dropdownId) {
+      onDeleteLink(dropdownId, columnId, link._id);
+      setIsDeleteDialogOpen(false);
+    }
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -84,9 +101,19 @@ const DraggableLink: React.FC<DraggableLinkProps> = ({ link, columnId, onUpdateL
               </span>
               <ExternalLink size={12} className="text-gray-400" />
             </div>
-            <span className="text-xs text-gray-400 bg-gray-200 px-2 py-1 rounded">
-              #{link.position}
-            </span>
+            <div className="flex items-center gap-1">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 w-7 p-1 text-red-500 hover:text-red-600 hover:bg-red-50"
+                onClick={() => setIsDeleteDialogOpen(true)}
+              >
+                <Trash2 size={14} />
+              </Button>
+              <span className="text-xs text-gray-400 bg-gray-200 px-2 py-1 rounded">
+                #{link.position}
+              </span>
+            </div>
           </div>
           
           <CollapsibleContent>
@@ -143,6 +170,23 @@ const DraggableLink: React.FC<DraggableLinkProps> = ({ link, columnId, onUpdateL
           </CollapsibleContent>
         </Card>
       </Collapsible>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Link</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the link "{link.label}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteLink} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
