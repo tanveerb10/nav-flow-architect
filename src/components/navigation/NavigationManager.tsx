@@ -244,7 +244,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     }
   };
 
-  const handleUpdateLink = (linkId: string, updatedData: Partial<NavigationLink>) => {
+  const handleUpdateLink = (linkId, updatedData) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
         const newColumns = dropdown.dropdown.columns.map(column => {
@@ -279,20 +279,27 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     });
   };
 
-  const handleAddColumn = (dropdownId: string) => {
+  const handleAddColumn = (dropdownId, columnType = 'links') => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
         if (dropdown._id === dropdownId) {
           const columns = dropdown.dropdown.columns || [];
           
           // Create a new column with a unique ID and ensure it has the correct type
-          const newColumn: DropdownColumn = {
+          const newColumn = {
             _id: `col-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            type: 'links',
-            title: `Column ${columns.length + 1}`,
+            type: columnType,
+            title: columnType === 'links' ? `Column ${columns.length + 1}` : 'Image Column',
             links: [],
             position: columns.length + 1,
           };
+          
+          if (columnType === 'image') {
+            newColumn.image = {
+              url: '',
+              altText: 'Dropdown image',
+            };
+          }
           
           return {
             ...dropdown,
@@ -313,11 +320,40 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     
     toast({
       title: "Column added",
-      description: "New column has been added to the dropdown.",
+      description: `New ${columnType} column has been added to the dropdown.`,
     });
   };
 
-  const handleDeleteLink = (dropdownId: string, columnId: string, linkId: string) => {
+  const handleRemoveColumn = (dropdownId, columnId) => {
+    setNavigationData(prev => {
+      const newDropdowns = prev.dropdowns.map(dropdown => {
+        if (dropdown._id === dropdownId) {
+          const filteredColumns = dropdown.dropdown.columns.filter(column => column._id !== columnId);
+          
+          return {
+            ...dropdown,
+            dropdown: {
+              ...dropdown.dropdown,
+              columns: updatePositions(filteredColumns),
+            },
+          };
+        }
+        return dropdown;
+      });
+      
+      return {
+        ...prev,
+        dropdowns: newDropdowns,
+      };
+    });
+    
+    toast({
+      title: "Column removed",
+      description: "Column has been removed from the dropdown.",
+    });
+  };
+
+  const handleDeleteLink = (dropdownId, columnId, linkId) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
         if (dropdown._id === dropdownId) {
@@ -355,7 +391,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     });
   };
 
-  const handleAddLink = (dropdownId: string, columnId: string) => {
+  const handleAddLink = (dropdownId, columnId) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
         if (dropdown._id === dropdownId) {
@@ -399,7 +435,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     });
   };
 
-  const handleUpdateColumn = (dropdownId: string, columnId: string, updatedData: Partial<DropdownColumn>) => {
+  const handleUpdateColumn = (dropdownId, columnId, updatedData) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
         if (dropdown._id === dropdownId) {
@@ -436,7 +472,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     });
   };
 
-  const handleAddMenuItem = (values: MenuItemFormValues) => {
+  const handleAddMenuItem = (values) => {
     const newMenuItem: MenuItem = {
       title: values.title,
       url: values.url,
@@ -595,6 +631,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
                             onDeleteLink={handleDeleteLink}
                             onAddLink={handleAddLink}
                             onUpdateColumn={handleUpdateColumn}
+                            onRemoveColumn={handleRemoveColumn}
                           />
                         )}
                       </div>
