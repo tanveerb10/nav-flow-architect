@@ -3,22 +3,13 @@ import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card } from '@/components/ui/card';
-import { NavigationLink } from '@/types/navigation';
 import { GripVertical, ExternalLink, ChevronDown, ChevronRight, Edit2, Check, X, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
-interface DraggableLinkProps {
-  link: NavigationLink;
-  columnId: string;
-  dropdownId?: string;
-  onUpdateLink?: (linkId: string, updatedLink: Partial<NavigationLink>) => void;
-  onDeleteLink?: (dropdownId: string, columnId: string, linkId: string) => void;
-}
-
-const DraggableLink: React.FC<DraggableLinkProps> = ({ 
+const DraggableLink = ({ 
   link, 
   columnId, 
   dropdownId,
