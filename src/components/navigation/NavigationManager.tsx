@@ -18,7 +18,7 @@ import {
 } from '@dnd-kit/sortable';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { NavigationData, NavigationLink, MenuItem } from '@/types/navigation';
+import { NavigationData, NavigationLink, MenuItem, DropdownColumn } from '@/types/navigation';
 import MenuItemCard from './MenuItemCard';
 import DropdownEditor from './DropdownEditor';
 import { Menu, Save, AlertTriangle, Plus } from 'lucide-react';
@@ -275,18 +275,18 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     
     toast({
       title: "Link updated",
-      description: "Link URL has been updated successfully.",
+      description: `Link ${updatedData.label ? 'title' : 'URL'} has been updated successfully.`,
     });
   };
 
-  const handleAddColumn = (dropdownId) => {
+  const handleAddColumn = (dropdownId: string) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
         if (dropdown._id === dropdownId) {
           const columns = dropdown.dropdown.columns || [];
           
-          // Create a new column with a unique ID
-          const newColumn = {
+          // Create a new column with a unique ID and ensure it has the correct type
+          const newColumn: DropdownColumn = {
             _id: `col-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             type: 'links',
             title: `Column ${columns.length + 1}`,
@@ -317,7 +317,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     });
   };
 
-  const handleDeleteLink = (dropdownId, columnId, linkId) => {
+  const handleDeleteLink = (dropdownId: string, columnId: string, linkId: string) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
         if (dropdown._id === dropdownId) {
@@ -355,13 +355,13 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     });
   };
 
-  const handleAddLink = (dropdownId, columnId) => {
+  const handleAddLink = (dropdownId: string, columnId: string) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
         if (dropdown._id === dropdownId) {
           const newColumns = dropdown.dropdown.columns.map(column => {
             if (column._id === columnId) {
-              const newLink = {
+              const newLink: NavigationLink = {
                 _id: `link-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                 label: 'New Link',
                 url: '/',
@@ -399,7 +399,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     });
   };
 
-  const handleUpdateColumn = (dropdownId, columnId, updatedData) => {
+  const handleUpdateColumn = (dropdownId: string, columnId: string, updatedData: Partial<DropdownColumn>) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
         if (dropdown._id === dropdownId) {

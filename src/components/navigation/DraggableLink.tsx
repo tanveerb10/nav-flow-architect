@@ -28,6 +28,8 @@ const DraggableLink: React.FC<DraggableLinkProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedUrl, setEditedUrl] = useState(link.url);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(link.label);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   
   const {
@@ -58,9 +60,21 @@ const DraggableLink: React.FC<DraggableLinkProps> = ({
     setIsEditing(false);
   };
 
+  const handleSaveTitle = () => {
+    if (onUpdateLink && editedTitle !== link.label) {
+      onUpdateLink(link._id, { label: editedTitle });
+    }
+    setIsEditingTitle(false);
+  };
+
   const handleCancelEdit = () => {
     setEditedUrl(link.url);
     setIsEditing(false);
+  };
+
+  const handleCancelTitleEdit = () => {
+    setEditedTitle(link.label);
+    setIsEditingTitle(false);
   };
 
   const handleDeleteLink = () => {
@@ -96,10 +110,47 @@ const DraggableLink: React.FC<DraggableLinkProps> = ({
                   )}
                 </Button>
               </CollapsibleTrigger>
-              <span className="text-sm font-medium text-gray-900 truncate">
-                {link.label}
-              </span>
-              <ExternalLink size={12} className="text-gray-400" />
+              {isEditingTitle ? (
+                <div className="flex items-center gap-2 flex-1">
+                  <Input 
+                    value={editedTitle}
+                    onChange={(e) => setEditedTitle(e.target.value)}
+                    className="h-8 py-1 text-sm"
+                    autoFocus
+                  />
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="h-7 w-7 p-1" 
+                    onClick={handleSaveTitle}
+                  >
+                    <Check size={14} className="text-green-600" />
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="h-7 w-7 p-1" 
+                    onClick={handleCancelTitleEdit}
+                  >
+                    <X size={14} className="text-red-600" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 flex-1">
+                  <span className="text-sm font-medium text-gray-900 truncate">
+                    {link.label}
+                  </span>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="h-6 w-6 p-0" 
+                    onClick={() => setIsEditingTitle(true)}
+                  >
+                    <Edit2 size={12} className="text-gray-400" />
+                  </Button>
+                  <ExternalLink size={12} className="text-gray-400" />
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-1">
               <Button
