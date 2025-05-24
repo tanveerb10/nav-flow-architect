@@ -8,13 +8,6 @@ import DropdownColumn from './DropdownColumn';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -24,7 +17,6 @@ import {
 // Removed TypeScript interface and props typing
 const DropdownEditor = ({ dropdown, onUpdateLink, onAddColumn, onDeleteLink, onAddLink, onUpdateColumn, onRemoveColumn }) => {
   const { toast } = useToast();
-  const [columnType, setColumnType] = useState('links');
 
   // Early return if dropdown is undefined or null
   if (!dropdown) {
@@ -51,7 +43,7 @@ const DropdownEditor = ({ dropdown, onUpdateLink, onAddColumn, onDeleteLink, onA
       return;
     }
     
-    onAddColumn(dropdown._id, type || columnType);
+    onAddColumn(dropdown._id, type);
   };
 
   return (
@@ -72,34 +64,39 @@ const DropdownEditor = ({ dropdown, onUpdateLink, onAddColumn, onDeleteLink, onA
               <Grid3X3 size={12} />
               {dropdown.dropdown?.columns?.length || 0}/4 columns
             </Badge>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex items-center gap-1"
-                  disabled={dropdown.dropdown?.columns?.length >= 4}
-                >
-                  <Plus size={14} />
-                  Add Column
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={() => handleAddColumn('links')} className="gap-2">
-                  <Link size={16} />
-                  Links Column
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleAddColumn('image')} className="gap-2">
-                  <Image size={16} />
-                  Image Column
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </div>
       </CardHeader>
       <CardContent>
+        <div className="flex justify-between items-center mb-4">
+          <div className="text-sm text-gray-600">
+            Drag to reorder columns
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center gap-1"
+                disabled={dropdown.dropdown?.columns?.length >= 4}
+              >
+                <Plus size={14} />
+                Add Column
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={() => handleAddColumn('links')} className="gap-2">
+                <Link size={16} />
+                Links Column
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleAddColumn('image')} className="gap-2">
+                <Image size={16} />
+                Image Column
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
             {dropdown.dropdown?.columns

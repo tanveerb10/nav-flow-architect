@@ -285,19 +285,32 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
         if (dropdown._id === dropdownId) {
           const columns = dropdown.dropdown.columns || [];
           
+          // Ensure columnType is typed correctly as 'links' or 'image'
+          const validColumnType = columnType === 'image' ? 'image' : 'links';
+          
           // Create a new column with a unique ID and ensure it has the correct type
           const newColumn = {
             _id: `col-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            type: columnType,
-            title: columnType === 'links' ? `Column ${columns.length + 1}` : 'Image Column',
+            type: validColumnType,
+            title: validColumnType === 'links' ? `Column ${columns.length + 1}` : 'Image Column',
             links: [],
             position: columns.length + 1,
           };
           
-          if (columnType === 'image') {
-            newColumn.image = {
-              url: '',
-              altText: 'Dropdown image',
+          if (validColumnType === 'image') {
+            // Only add image property if it's an image column
+            return {
+              ...dropdown,
+              dropdown: {
+                ...dropdown.dropdown,
+                columns: [...columns, {
+                  ...newColumn,
+                  image: {
+                    url: '',
+                    altText: 'Dropdown image',
+                  }
+                }],
+              },
             };
           }
           
