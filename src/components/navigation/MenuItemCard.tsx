@@ -4,14 +4,23 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { MenuItem } from '@/types/navigation';
-import { GripVertical, ExternalLink, ChevronDown } from 'lucide-react';
+import { GripVertical, ExternalLink, ChevronDown, Plus, Link, Image } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface MenuItemCardProps {
   item: MenuItem;
+  dropdown?: any;
+  onAddColumn?: (dropdownId: string, type: 'links' | 'image') => void;
 }
 
-const MenuItemCard: React.FC<MenuItemCardProps> = ({ item }) => {
+const MenuItemCard: React.FC<MenuItemCardProps> = ({ item, dropdown, onAddColumn }) => {
   const {
     attributes,
     listeners,
@@ -30,6 +39,12 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item }) => {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+  };
+
+  const handleAddColumn = (type: 'links' | 'image') => {
+    if (dropdown && onAddColumn) {
+      onAddColumn(dropdown._id, type);
+    }
   };
 
   return (
@@ -61,7 +76,34 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item }) => {
               </div>
             </div>
             <div className="flex flex-col items-end gap-2">
-              <Badge variant="outline">Position #{item.position}</Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">Position #{item.position}</Badge>
+                {item.hasDropdown && dropdown && onAddColumn && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex items-center gap-1"
+                        disabled={dropdown.dropdown?.columns?.length >= 4}
+                      >
+                        <Plus size={14} />
+                        Add Column
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem onClick={() => handleAddColumn('links')} className="gap-2">
+                        <Link size={16} />
+                        Links Column
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleAddColumn('image')} className="gap-2">
+                        <Image size={16} />
+                        Image Column
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
               {item.hasDropdown && (
                 <Badge variant="secondary" className="text-xs">
                   Has Dropdown

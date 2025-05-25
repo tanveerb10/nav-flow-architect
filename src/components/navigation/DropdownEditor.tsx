@@ -3,19 +3,12 @@ import React, { useState } from 'react';
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, Grid3X3, Plus, Image, Link } from 'lucide-react';
+import { ChevronDown, Grid3X3 } from 'lucide-react';
 import DropdownColumn from './DropdownColumn';
-import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 // Removed TypeScript interface and props typing
-const DropdownEditor = ({ dropdown, onUpdateLink, onAddColumn, onDeleteLink, onAddLink, onUpdateColumn, onRemoveColumn }) => {
+const DropdownEditor = ({ dropdown, onUpdateLink, onDeleteLink, onAddLink, onUpdateColumn, onRemoveColumn }) => {
   const { toast } = useToast();
 
   // Early return if dropdown is undefined or null
@@ -32,19 +25,6 @@ const DropdownEditor = ({ dropdown, onUpdateLink, onAddColumn, onDeleteLink, onA
   }
 
   const columnIds = dropdown.dropdown?.columns?.map(column => `${dropdown._id}-${column._id}`) || [];
-  
-  const handleAddColumn = (type) => {
-    if (dropdown.dropdown?.columns?.length >= 4) {
-      toast({
-        variant: "destructive",
-        title: "Maximum columns exceeded",
-        description: "Maximum of 4 columns allowed per dropdown.",
-      });
-      return;
-    }
-    
-    onAddColumn(dropdown._id, type);
-  };
 
   return (
     <Card className="mt-4 bg-blue-50 border-blue-200">
@@ -64,29 +44,6 @@ const DropdownEditor = ({ dropdown, onUpdateLink, onAddColumn, onDeleteLink, onA
               <Grid3X3 size={12} />
               {dropdown.dropdown?.columns?.length || 0}/4 columns
             </Badge>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex items-center gap-1"
-                  disabled={dropdown.dropdown?.columns?.length >= 4}
-                >
-                  <Plus size={14} />
-                  Add Column
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={() => handleAddColumn('links')} className="gap-2">
-                  <Link size={16} />
-                  Links Column
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleAddColumn('image')} className="gap-2">
-                  <Image size={16} />
-                  Image Column
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </div>
       </CardHeader>

@@ -623,12 +623,15 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
                     
                     return (
                       <div key={item._id}>
-                        <MenuItemCard item={item} />
+                        <MenuItemCard 
+                          item={item} 
+                          dropdown={itemDropdown}
+                          onAddColumn={handleAddColumn}
+                        />
                         {item.hasDropdown && itemDropdown && (
                           <DropdownEditor
                             dropdown={itemDropdown}
                             onUpdateLink={handleUpdateLink}
-                            onAddColumn={handleAddColumn}
                             onDeleteLink={handleDeleteLink}
                             onAddLink={handleAddLink}
                             onUpdateColumn={handleUpdateColumn}
