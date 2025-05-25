@@ -18,7 +18,6 @@ import {
 } from '@dnd-kit/sortable';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { NavigationData, NavigationLink, MenuItem, DropdownColumn } from '@/types/navigation';
 import MenuItemCard from './MenuItemCard';
 import DropdownEditor from './DropdownEditor';
 import { Menu, Save, AlertTriangle, Plus } from 'lucide-react';
@@ -36,10 +35,6 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-interface NavigationManagerProps {
-  initialData: NavigationData;
-}
-
 // Form schema for adding new menu item
 const menuItemSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -47,17 +42,15 @@ const menuItemSchema = z.object({
   hasDropdown: z.boolean().default(false),
 });
 
-type MenuItemFormValues = z.infer<typeof menuItemSchema>;
-
-const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) => {
-  const [navigationData, setNavigationData] = useState<NavigationData>(initialData);
-  const [activeId, setActiveId] = useState<string | null>(null);
+const NavigationManager = ({ initialData }) => {
+  const [navigationData, setNavigationData] = useState(initialData);
+  const [activeId, setActiveId] = useState(null);
   const [isAddingMenu, setIsAddingMenu] = useState(false);
-  const [expandedMenuItems, setExpandedMenuItems] = useState<Set<string>>(new Set());
+  const [expandedMenuItems, setExpandedMenuItems] = useState(new Set());
   const { toast } = useToast();
 
   // Setup form for adding menu item
-  const form = useForm<MenuItemFormValues>({
+  const form = useForm({
     resolver: zodResolver(menuItemSchema),
     defaultValues: {
       title: '',
@@ -73,20 +66,18 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     })
   );
 
-  const updatePositions = <T extends { position: number; _id: string }>(
-    items: T[]
-  ): T[] => {
+  const updatePositions = (items) => {
     return items.map((item, index) => ({
       ...item,
       position: index + 1,
     }));
   };
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
+  const handleDragStart = (event) => {
+    setActiveId(event.active.id);
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = (event) => {
     const { active, over } = event;
     setActiveId(null);
 
@@ -219,7 +210,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     }
   };
 
-  const handleDragOver = (event: DragOverEvent) => {
+  const handleDragOver = (event) => {
     const { active, over } = event;
     if (!over) return;
 
@@ -245,7 +236,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     }
   };
 
-  const handleDeleteMenuItem = (menuItemId: string) => {
+  const handleDeleteMenuItem = (menuItemId) => {
     setNavigationData(prev => {
       // Find the menu item to get its title
       const menuItem = prev.menu.find(item => item._id === menuItemId);
@@ -278,7 +269,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     });
   };
 
-  const handleToggleExpanded = (menuItemId: string) => {
+  const handleToggleExpanded = (menuItemId) => {
     setExpandedMenuItems(prev => {
       const newSet = new Set(prev);
       if (newSet.has(menuItemId)) {
@@ -290,7 +281,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     });
   };
 
-  const handleUpdateLink = (linkId: any, updatedData: any) => {
+  const handleUpdateLink = (linkId, updatedData) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
         const newColumns = dropdown.dropdown.columns.map(column => {
@@ -325,7 +316,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     });
   };
 
-  const handleAddColumn = (dropdownId: string, columnType: 'links' | 'image' = 'links') => {
+  const handleAddColumn = (dropdownId, columnType = 'links') => {
     setNavigationData(prev => {
       // Check if dropdown exists
       let targetDropdown = prev.dropdowns.find(d => d._id === dropdownId);
@@ -354,7 +345,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
           };
           
           // Now add the column to this new dropdown
-          const newColumn: DropdownColumn = {
+          const newColumn = {
             _id: `col-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             type: columnType,
             title: columnType === 'links' ? 'Column 1' : 'Image Column',
@@ -363,7 +354,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
           };
           
           if (columnType === 'image') {
-            (newColumn as any).image = {
+            newColumn.image = {
               url: '',
               altText: 'Dropdown image',
             };
@@ -393,7 +384,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
           if (dropdown._id === dropdownId) {
             const columns = dropdown.dropdown.columns || [];
             
-            const newColumn: DropdownColumn = {
+            const newColumn = {
               _id: `col-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
               type: columnType,
               title: columnType === 'links' ? `Column ${columns.length + 1}` : 'Image Column',
@@ -402,7 +393,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
             };
             
             if (columnType === 'image') {
-              (newColumn as any).image = {
+              newColumn.image = {
                 url: '',
                 altText: 'Dropdown image',
               };
@@ -434,7 +425,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     });
   };
 
-  const handleRemoveColumn = (dropdownId: any, columnId: any) => {
+  const handleRemoveColumn = (dropdownId, columnId) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
         if (dropdown._id === dropdownId) {
@@ -463,7 +454,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     });
   };
 
-  const handleDeleteLink = (dropdownId: any, columnId: any, linkId: any) => {
+  const handleDeleteLink = (dropdownId, columnId, linkId) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
         if (dropdown._id === dropdownId) {
@@ -501,13 +492,13 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     });
   };
 
-  const handleAddLink = (dropdownId: any, columnId: any) => {
+  const handleAddLink = (dropdownId, columnId) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
         if (dropdown._id === dropdownId) {
           const newColumns = dropdown.dropdown.columns.map(column => {
             if (column._id === columnId) {
-              const newLink: NavigationLink = {
+              const newLink = {
                 _id: `link-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                 label: 'New Link',
                 url: '/',
@@ -545,7 +536,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     });
   };
 
-  const handleUpdateColumn = (dropdownId: any, columnId: any, updatedData: any) => {
+  const handleUpdateColumn = (dropdownId, columnId, updatedData) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
         if (dropdown._id === dropdownId) {
@@ -582,8 +573,8 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     });
   };
 
-  const handleAddMenuItem = (values: any) => {
-    const newMenuItem: MenuItem = {
+  const handleAddMenuItem = (values) => {
+    const newMenuItem = {
       title: values.title,
       url: values.url,
       hasDropdown: values.hasDropdown,

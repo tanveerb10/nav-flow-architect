@@ -5,7 +5,6 @@ import { CSS } from '@dnd-kit/utilities';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MenuItem } from '@/types/navigation';
 import { GripVertical, ExternalLink, ChevronDown, ChevronUp, Plus, Link, Image, Trash2 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -25,16 +24,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-interface MenuItemCardProps {
-  item: MenuItem;
-  dropdown?: any;
-  isExpanded?: boolean;
-  onAddColumn?: (dropdownId: string, type: 'links' | 'image') => void;
-  onDeleteMenuItem?: (menuItemId: string) => void;
-  onToggleExpanded?: (menuItemId: string) => void;
-}
-
-const MenuItemCard: React.FC<MenuItemCardProps> = ({ 
+const MenuItemCard = ({ 
   item, 
   dropdown, 
   isExpanded = false,
@@ -62,7 +52,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
     transition,
   };
 
-  const handleAddColumn = (type: 'links' | 'image') => {
+  const handleAddColumn = (type) => {
     if (onAddColumn) {
       // If dropdown doesn't exist yet, we'll use the menu item's title to identify it
       const dropdownId = dropdown?._id || `dropdown-${item.title}`;
