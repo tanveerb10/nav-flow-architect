@@ -327,42 +327,105 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
 
   const handleAddColumn = (dropdownId: string, columnType: 'links' | 'image' = 'links') => {
     setNavigationData(prev => {
-      const newDropdowns = prev.dropdowns.map(dropdown => {
-        if (dropdown._id === dropdownId) {
-          const columns = dropdown.dropdown.columns || [];
+      // Check if dropdown exists
+      let targetDropdown = prev.dropdowns.find(d => d._id === dropdownId);
+      
+      // If dropdown doesn't exist, create it
+      if (!targetDropdown) {
+        // Find the menu item that should have this dropdown
+        const menuItem = prev.menu.find(item => item.hasDropdown && `dropdown-${item.title}` === dropdownId);
+        if (menuItem) {
+          const newDropdown = {
+            _id: `new-dropdown-${Date.now()}`,
+            menuTitle: menuItem.title,
+            dropdown: {
+              columns: [],
+            },
+          };
           
-          // Create a new column with proper typing
+          // Add the new dropdown to the list
+          const newDropdowns = [...prev.dropdowns, newDropdown];
+          targetDropdown = newDropdown;
+          
+          // Update the data with the new dropdown
+          const updatedData = {
+            ...prev,
+            dropdowns: newDropdowns,
+          };
+          
+          // Now add the column to this new dropdown
           const newColumn: DropdownColumn = {
             _id: `col-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             type: columnType,
-            title: columnType === 'links' ? `Column ${columns.length + 1}` : 'Image Column',
+            title: columnType === 'links' ? 'Column 1' : 'Image Column',
             links: [],
-            position: columns.length + 1,
+            position: 1,
           };
           
           if (columnType === 'image') {
-            // Add image property for image columns
             (newColumn as any).image = {
               url: '',
               altText: 'Dropdown image',
             };
           }
           
+          const finalDropdowns = updatedData.dropdowns.map(dropdown => {
+            if (dropdown._id === newDropdown._id) {
+              return {
+                ...dropdown,
+                dropdown: {
+                  ...dropdown.dropdown,
+                  columns: [newColumn],
+                },
+              };
+            }
+            return dropdown;
+          });
+          
           return {
-            ...dropdown,
-            dropdown: {
-              ...dropdown.dropdown,
-              columns: [...columns, newColumn],
-            },
+            ...updatedData,
+            dropdowns: finalDropdowns,
           };
         }
-        return dropdown;
-      });
+      } else {
+        // Dropdown exists, add column to it
+        const newDropdowns = prev.dropdowns.map(dropdown => {
+          if (dropdown._id === dropdownId) {
+            const columns = dropdown.dropdown.columns || [];
+            
+            const newColumn: DropdownColumn = {
+              _id: `col-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              type: columnType,
+              title: columnType === 'links' ? `Column ${columns.length + 1}` : 'Image Column',
+              links: [],
+              position: columns.length + 1,
+            };
+            
+            if (columnType === 'image') {
+              (newColumn as any).image = {
+                url: '',
+                altText: 'Dropdown image',
+              };
+            }
+            
+            return {
+              ...dropdown,
+              dropdown: {
+                ...dropdown.dropdown,
+                columns: [...columns, newColumn],
+              },
+            };
+          }
+          return dropdown;
+        });
+        
+        return {
+          ...prev,
+          dropdowns: newDropdowns,
+        };
+      }
       
-      return {
-        ...prev,
-        dropdowns: newDropdowns,
-      };
+      return prev;
     });
     
     toast({

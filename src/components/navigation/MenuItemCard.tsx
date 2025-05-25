@@ -63,8 +63,10 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
   };
 
   const handleAddColumn = (type: 'links' | 'image') => {
-    if (dropdown && onAddColumn) {
-      onAddColumn(dropdown._id, type);
+    if (onAddColumn) {
+      // If dropdown doesn't exist yet, we'll use the menu item's title to identify it
+      const dropdownId = dropdown?._id || `dropdown-${item.title}`;
+      onAddColumn(dropdownId, type);
     }
   };
 
@@ -79,6 +81,9 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
       onToggleExpanded(item._id);
     }
   };
+
+  const columnCount = dropdown?.dropdown?.columns?.length || 0;
+  const canAddColumns = columnCount < 4;
 
   return (
     <div
@@ -118,14 +123,14 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                       Has Dropdown
                     </Badge>
                     
-                    {dropdown && onAddColumn && (
+                    {onAddColumn && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button 
                             variant="outline" 
                             size="sm" 
                             className="flex items-center gap-1"
-                            disabled={dropdown.dropdown?.columns?.length >= 4}
+                            disabled={!canAddColumns}
                           >
                             <Plus size={14} />
                             Add Column
