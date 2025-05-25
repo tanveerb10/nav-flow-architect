@@ -53,6 +53,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
   const [navigationData, setNavigationData] = useState<NavigationData>(initialData);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isAddingMenu, setIsAddingMenu] = useState(false);
+  const [expandedMenuItems, setExpandedMenuItems] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   // Setup form for adding menu item
@@ -244,7 +245,52 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     }
   };
 
-  const handleUpdateLink = (linkId, updatedData) => {
+  const handleDeleteMenuItem = (menuItemId: string) => {
+    setNavigationData(prev => {
+      // Find the menu item to get its title
+      const menuItem = prev.menu.find(item => item._id === menuItemId);
+      
+      // Remove the menu item
+      const newMenu = prev.menu.filter(item => item._id !== menuItemId);
+      
+      // Remove associated dropdown if it exists
+      const newDropdowns = menuItem?.hasDropdown 
+        ? prev.dropdowns.filter(dropdown => dropdown.menuTitle !== menuItem.title)
+        : prev.dropdowns;
+      
+      return {
+        ...prev,
+        menu: updatePositions(newMenu),
+        dropdowns: newDropdowns,
+      };
+    });
+
+    // Remove from expanded items
+    setExpandedMenuItems(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(menuItemId);
+      return newSet;
+    });
+    
+    toast({
+      title: "Menu item deleted",
+      description: "Menu item and associated dropdown have been removed.",
+    });
+  };
+
+  const handleToggleExpanded = (menuItemId: string) => {
+    setExpandedMenuItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(menuItemId)) {
+        newSet.delete(menuItemId);
+      } else {
+        newSet.add(menuItemId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleUpdateLink = (linkId: any, updatedData: any) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
         const newColumns = dropdown.dropdown.columns.map(column => {
@@ -325,7 +371,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     });
   };
 
-  const handleRemoveColumn = (dropdownId, columnId) => {
+  const handleRemoveColumn = (dropdownId: any, columnId: any) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
         if (dropdown._id === dropdownId) {
@@ -354,7 +400,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     });
   };
 
-  const handleDeleteLink = (dropdownId, columnId, linkId) => {
+  const handleDeleteLink = (dropdownId: any, columnId: any, linkId: any) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
         if (dropdown._id === dropdownId) {
@@ -392,7 +438,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     });
   };
 
-  const handleAddLink = (dropdownId, columnId) => {
+  const handleAddLink = (dropdownId: any, columnId: any) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
         if (dropdown._id === dropdownId) {
@@ -436,7 +482,7 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     });
   };
 
-  const handleUpdateColumn = (dropdownId, columnId, updatedData) => {
+  const handleUpdateColumn = (dropdownId: any, columnId: any, updatedData: any) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
         if (dropdown._id === dropdownId) {
@@ -473,13 +519,13 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
     });
   };
 
-  const handleAddMenuItem = (values) => {
+  const handleAddMenuItem = (values: any) => {
     const newMenuItem: MenuItem = {
       title: values.title,
       url: values.url,
       hasDropdown: values.hasDropdown,
       position: navigationData.menu.length + 1,
-      _id: `new-menu-${Date.now()}`, // Generate a temporary ID
+      _id: `new-menu-${Date.now()}`,
     };
 
     setNavigationData(prev => ({
@@ -621,14 +667,19 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
                       ? navigationData.dropdowns.find(d => d.menuTitle === item.title)
                       : null;
                     
+                    const isExpanded = expandedMenuItems.has(item._id);
+                    
                     return (
                       <div key={item._id}>
                         <MenuItemCard 
                           item={item} 
                           dropdown={itemDropdown}
+                          isExpanded={isExpanded}
                           onAddColumn={handleAddColumn}
+                          onDeleteMenuItem={handleDeleteMenuItem}
+                          onToggleExpanded={handleToggleExpanded}
                         />
-                        {item.hasDropdown && itemDropdown && (
+                        {item.hasDropdown && itemDropdown && isExpanded && (
                           <DropdownEditor
                             dropdown={itemDropdown}
                             onUpdateLink={handleUpdateLink}
@@ -670,7 +721,8 @@ const NavigationManager: React.FC<NavigationManagerProps> = ({ initialData }) =>
               <p className="text-sm text-orange-800">
                 • Maximum of 4 columns allowed per dropdown menu<br />
                 • Positions are automatically updated after reordering<br />
-                • All changes are preserved in the original data structure
+                • All changes are preserved in the original data structure<br />
+                • Dropdown columns can be expanded/collapsed for better management
               </p>
             </div>
           </div>
