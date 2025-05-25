@@ -64,37 +64,35 @@ const DropdownEditor = ({ dropdown, onUpdateLink, onAddColumn, onDeleteLink, onA
               <Grid3X3 size={12} />
               {dropdown.dropdown?.columns?.length || 0}/4 columns
             </Badge>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center gap-1"
+                  disabled={dropdown.dropdown?.columns?.length >= 4}
+                >
+                  <Plus size={14} />
+                  Add Column
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => handleAddColumn('links')} className="gap-2">
+                  <Link size={16} />
+                  Links Column
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleAddColumn('image')} className="gap-2">
+                  <Image size={16} />
+                  Image Column
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex justify-between items-center mb-4">
-          <div className="text-sm text-gray-600">
-            Drag to reorder columns
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex items-center gap-1"
-                disabled={dropdown.dropdown?.columns?.length >= 4}
-              >
-                <Plus size={14} />
-                Add Column
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={() => handleAddColumn('links')} className="gap-2">
-                <Link size={16} />
-                Links Column
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAddColumn('image')} className="gap-2">
-                <Image size={16} />
-                Image Column
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="text-sm text-gray-600 mb-4">
+          Drag to reorder columns
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -118,7 +116,7 @@ const DropdownEditor = ({ dropdown, onUpdateLink, onAddColumn, onDeleteLink, onA
         {(!dropdown.dropdown?.columns || dropdown.dropdown.columns.length === 0) && (
           <div className="text-center py-8 text-gray-400">
             <Grid3X3 size={48} className="mx-auto mb-3 opacity-50" />
-            <p>No links added yet</p>
+            <p>No columns added yet</p>
           </div>
         )}
       </CardContent>
