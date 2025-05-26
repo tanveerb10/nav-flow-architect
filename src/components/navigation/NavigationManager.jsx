@@ -7,16 +7,13 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragStartEvent,
-  DragEndEvent,
-  DragOverEvent,
 } from '@dnd-kit/core';
 import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import MenuItemCard from './MenuItemCard';
 import DropdownEditor from './DropdownEditor';
@@ -31,15 +28,15 @@ import {
   FormControl,
   FormMessage
 } from '@/components/ui/form';
-import { z } from 'zod';
+import * as yup from 'yup';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { yupResolver } from '@hookform/resolvers/yup';
 
-// Form schema for adding new menu item
-const menuItemSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  url: z.string().min(1, 'URL is required'),
-  hasDropdown: z.boolean().default(false),
+// Form schema for adding new menu item using yup
+const menuItemSchema = yup.object({
+  title: yup.string().required('Title is required'),
+  url: yup.string().required('URL is required'),
+  hasDropdown: yup.boolean().default(false),
 });
 
 const NavigationManager = ({ initialData }) => {
@@ -51,7 +48,7 @@ const NavigationManager = ({ initialData }) => {
 
   // Setup form for adding menu item
   const form = useForm({
-    resolver: zodResolver(menuItemSchema),
+    resolver: yupResolver(menuItemSchema),
     defaultValues: {
       title: '',
       url: '/',
@@ -59,6 +56,7 @@ const NavigationManager = ({ initialData }) => {
     },
   });
 
+  // Setup sensors for drag and drop
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -66,6 +64,7 @@ const NavigationManager = ({ initialData }) => {
     })
   );
 
+  // Function to update item positions
   const updatePositions = (items) => {
     return items.map((item, index) => ({
       ...item,
@@ -73,10 +72,12 @@ const NavigationManager = ({ initialData }) => {
     }));
   };
 
+  // Function to handle drag start
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
   };
 
+  // Function to handle drag end
   const handleDragEnd = (event) => {
     const { active, over } = event;
     setActiveId(null);
@@ -210,6 +211,7 @@ const NavigationManager = ({ initialData }) => {
     }
   };
 
+  // Function to handle drag over
   const handleDragOver = (event) => {
     const { active, over } = event;
     if (!over) return;
@@ -236,6 +238,7 @@ const NavigationManager = ({ initialData }) => {
     }
   };
 
+  // Function to handle deleting a menu item
   const handleDeleteMenuItem = (menuItemId) => {
     setNavigationData(prev => {
       // Find the menu item to get its title
@@ -269,6 +272,7 @@ const NavigationManager = ({ initialData }) => {
     });
   };
 
+  // Function to handle toggling menu item expansion
   const handleToggleExpanded = (menuItemId) => {
     setExpandedMenuItems(prev => {
       const newSet = new Set(prev);
@@ -281,6 +285,7 @@ const NavigationManager = ({ initialData }) => {
     });
   };
 
+  // Function to handle updating a link
   const handleUpdateLink = (linkId, updatedData) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
@@ -316,6 +321,7 @@ const NavigationManager = ({ initialData }) => {
     });
   };
 
+  // Function to handle adding a column
   const handleAddColumn = (dropdownId, columnType = 'links') => {
     setNavigationData(prev => {
       // Check if dropdown exists
@@ -427,6 +433,7 @@ const NavigationManager = ({ initialData }) => {
     });
   };
 
+  // Function to handle removing a column
   const handleRemoveColumn = (dropdownId, columnId) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
@@ -456,6 +463,7 @@ const NavigationManager = ({ initialData }) => {
     });
   };
 
+  // Function to handle deleting a link
   const handleDeleteLink = (dropdownId, columnId, linkId) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
@@ -494,6 +502,7 @@ const NavigationManager = ({ initialData }) => {
     });
   };
 
+  // Function to handle adding a link
   const handleAddLink = (dropdownId, columnId) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
@@ -538,6 +547,7 @@ const NavigationManager = ({ initialData }) => {
     });
   };
 
+  // Function to handle updating a column
   const handleUpdateColumn = (dropdownId, columnId, updatedData) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
@@ -575,6 +585,7 @@ const NavigationManager = ({ initialData }) => {
     });
   };
 
+  // Function to handle adding a new menu item
   const handleAddMenuItem = (values) => {
     const newMenuItem = {
       title: values.title,
@@ -598,6 +609,7 @@ const NavigationManager = ({ initialData }) => {
     });
   };
 
+  // Function to handle saving navigation data
   const handleSave = () => {
     console.log('Saving navigation data:', navigationData);
     toast({
@@ -606,6 +618,7 @@ const NavigationManager = ({ initialData }) => {
     });
   };
 
+  // Get all menu item IDs
   const menuItemIds = navigationData.menu.map(item => item._id);
 
   return (

@@ -1,56 +1,63 @@
 
-// Navigation data structure examples for reference
+// Navigation data structure examples
 
-export const navigationExamples = {
-  navigationLink: {
-    label: "Example Link",
-    url: "/example",
-    position: 1,
-    _id: "link-123"
-  },
+// Example menu item
+const exampleMenuItem = {
+  _id: "menu-1",
+  title: "Products",
+  url: "/products",
+  hasDropdown: true,
+  position: 1
+};
 
-  dropdownColumn: {
-    type: "links", // or "image"
-    title: "Column Title",
-    links: [],
-    image: {
-      url: "https://example.com/image.jpg",
-      altText: "Image description"
-    },
-    position: 1,
-    _id: "col-123"
-  },
-
-  dropdownData: {
-    menuTitle: "Menu Title",
-    columns: [],
-    _id: "dropdown-123"
-  },
-
-  menuDropdown: {
-    menuTitle: "Menu Title", 
-    dropdown: {
-      menuTitle: "Menu Title",
-      columns: [],
-      _id: "dropdown-123"
-    },
-    _id: "menu-dropdown-123"
-  },
-
-  menuItem: {
-    title: "Menu Item",
-    url: "/menu-item",
-    hasDropdown: false,
-    position: 1,
-    _id: "menu-123"
-  },
-
-  navigationData: {
-    _id: "nav-123",
-    menu: [],
-    dropdowns: [],
-    createdAt: "2023-01-01T00:00:00.000Z",
-    updatedAt: "2023-01-01T00:00:00.000Z",
-    __v: 0
+// Example dropdown structure
+const exampleDropdown = {
+  _id: "dropdown-1",
+  menuTitle: "Products",
+  dropdown: {
+    columns: [
+      {
+        _id: "col-1",
+        type: "links",
+        title: "Category 1",
+        position: 1,
+        links: [
+          {
+            _id: "link-1",
+            label: "Product A",
+            url: "/products/a",
+            position: 1
+          }
+        ]
+      },
+      {
+        _id: "col-2", 
+        type: "image",
+        title: "Featured",
+        position: 2,
+        image: {
+          url: "/images/featured.jpg",
+          altText: "Featured product",
+          linkUrl: "/featured"
+        },
+        links: []
+      }
+    ]
   }
+};
+
+// Example full navigation data
+const exampleNavigationData = {
+  _id: "nav-1",
+  menu: [exampleMenuItem],
+  dropdowns: [exampleDropdown],
+  createdAt: "2024-01-01T00:00:00.000Z",
+  updatedAt: "2024-01-01T00:00:00.000Z",
+  __v: 0
+};
+
+export {
+  exampleMenuItem,
+  exampleDropdown,
+  exampleNavigationData
 };
