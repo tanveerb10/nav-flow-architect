@@ -1,10 +1,24 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Upload, Link, Image as ImageIcon, Trash2 } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  TextField,
+  Button,
+  Typography,
+  Box,
+  IconButton,
+  Alert
+} from '@mui/material';
+import {
+  Upload,
+  Link,
+  Image as ImageIcon,
+  Delete,
+  Edit,
+  Save,
+  Cancel
+} from '@mui/icons-material';
 import { useToast } from '@/hooks/use-toast';
 
 const ImageColumn = ({ column, dropdownId, onUpdateColumn, onRemoveColumn }) => {
@@ -20,7 +34,6 @@ const ImageColumn = ({ column, dropdownId, onUpdateColumn, onRemoveColumn }) => 
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Create a local URL for the uploaded image
     const imageUrl = URL.createObjectURL(file);
     
     onUpdateColumn(dropdownId, column._id, {
@@ -86,7 +99,6 @@ const ImageColumn = ({ column, dropdownId, onUpdateColumn, onRemoveColumn }) => 
 
   const handleLinkUrlChange = (newUrl) => {
     if (!isEditing) {
-      // Direct update when not in editing mode
       onUpdateColumn(dropdownId, column._id, {
         image: {
           ...column.image,
@@ -94,14 +106,12 @@ const ImageColumn = ({ column, dropdownId, onUpdateColumn, onRemoveColumn }) => 
         }
       });
     } else {
-      // Update temp data when in editing mode
       setTempData(prev => ({ ...prev, linkUrl: newUrl }));
     }
   };
 
   const handleAltTextChange = (newAltText) => {
     if (!isEditing) {
-      // Direct update when not in editing mode
       onUpdateColumn(dropdownId, column._id, {
         image: {
           ...column.image,
@@ -109,135 +119,147 @@ const ImageColumn = ({ column, dropdownId, onUpdateColumn, onRemoveColumn }) => 
         }
       });
     } else {
-      // Update temp data when in editing mode
       setTempData(prev => ({ ...prev, altText: newAltText }));
     }
   };
 
   return (
-    <Card className="border-purple-200 bg-purple-50">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <ImageIcon size={16} className="text-purple-600" />
+    <Card sx={{ bgcolor: '#f3e8ff', border: '1px solid #c4b5fd' }}>
+      <CardContent sx={{ p: 2 }}>
+        <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+          <Box display="flex" alignItems="center" gap={1}>
+            <ImageIcon sx={{ color: '#7c3aed', fontSize: 16 }} />
             {isEditing ? (
-              <Input
+              <TextField
                 value={tempData.title}
                 onChange={(e) => setTempData(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="Column title"
-                className="h-8 text-sm font-medium"
+                size="small"
+                sx={{ fontSize: '0.875rem', fontWeight: 500 }}
               />
             ) : (
-              <span className="text-sm font-medium text-gray-900">
+              <Typography variant="body2" fontWeight={500} color="text.primary">
                 {column.title || 'Image Column'}
-              </span>
+              </Typography>
             )}
-          </div>
-          <div className="flex items-center gap-1">
+          </Box>
+          <Box display="flex" alignItems="center" gap={0.5}>
             {!isEditing && (
-              <Button
-                variant="ghost"
-                size="sm"
+              <IconButton
+                size="small"
                 onClick={() => setIsEditing(true)}
-                className="h-8 w-8 p-0"
               >
-                <span className="sr-only">Edit</span>
-                ✏️
-              </Button>
+                <Edit sx={{ fontSize: 14 }} />
+              </IconButton>
             )}
-            <Button
-              variant="ghost"
-              size="sm"
+            <IconButton
+              size="small"
               onClick={handleRemove}
-              className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+              sx={{ color: '#dc2626', '&:hover': { bgcolor: '#fef2f2' } }}
             >
-              <Trash2 size={14} />
-            </Button>
-          </div>
-        </div>
+              <Delete sx={{ fontSize: 14 }} />
+            </IconButton>
+          </Box>
+        </Box>
 
-        <div className="space-y-3">
-          {/* Link URL - Required and always editable */}
-          <div>
-            <Label className="text-xs text-gray-600 mb-1 block">
-              Link URL <span className="text-red-500">*</span>
-            </Label>
-            <div className="flex items-center gap-2">
-              <Link size={16} className="text-gray-400" />
-              <Input
+        <Box display="flex" flexDirection="column" gap={2}>
+          <Box>
+            <Typography variant="caption" color="text.secondary" mb={0.5} display="block">
+              Link URL <span style={{ color: '#ef4444' }}>*</span>
+            </Typography>
+            <Box display="flex" alignItems="center" gap={1}>
+              <Link sx={{ fontSize: 16, color: '#9ca3af' }} />
+              <TextField
                 value={isEditing ? tempData.linkUrl : (column.image?.linkUrl || '')}
                 onChange={(e) => handleLinkUrlChange(e.target.value)}
                 placeholder="https://example.com"
-                className="h-8 text-sm"
+                size="small"
+                fullWidth
                 required
               />
-            </div>
-          </div>
+            </Box>
+          </Box>
 
-          {/* Alt Text - Required and always editable */}
-          <div>
-            <Label className="text-xs text-gray-600 mb-1 block">
-              Alt Text <span className="text-red-500">*</span>
-            </Label>
-            <Input
+          <Box>
+            <Typography variant="caption" color="text.secondary" mb={0.5} display="block">
+              Alt Text <span style={{ color: '#ef4444' }}>*</span>
+            </Typography>
+            <TextField
               value={isEditing ? tempData.altText : (column.image?.altText || '')}
               onChange={(e) => handleAltTextChange(e.target.value)}
               placeholder="Describe the image"
-              className="h-8 text-sm"
+              size="small"
+              fullWidth
               required
             />
-          </div>
+          </Box>
 
-          {/* Image Upload - Optional */}
-          <div>
-            <Label className="text-xs text-gray-600 mb-1 block">Image (optional)</Label>
+          <Box>
+            <Typography variant="caption" color="text.secondary" mb={0.5} display="block">
+              Image (optional)
+            </Typography>
             {column.image?.url ? (
-              <div className="relative">
+              <Box position="relative">
                 <img 
                   src={column.image.url} 
                   alt={column.image.altText || 'Uploaded image'} 
-                  className="w-full h-32 object-cover rounded border"
+                  style={{ width: '100%', height: 128, objectFit: 'cover', borderRadius: 4, border: '1px solid #e5e7eb' }}
                 />
                 <Button
-                  variant="outline"
-                  size="sm"
-                  className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm"
+                  variant="outlined"
+                  size="small"
+                  startIcon={<Upload />}
+                  sx={{ 
+                    position: 'absolute', 
+                    top: 8, 
+                    right: 8, 
+                    bgcolor: 'rgba(255,255,255,0.9)',
+                    backdropFilter: 'blur(4px)'
+                  }}
                   onClick={() => document.getElementById(`file-${column._id}`).click()}
                 >
-                  <Upload size={12} />
                   Change
                 </Button>
-              </div>
+              </Box>
             ) : (
-              <div 
-                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-purple-400 transition-colors"
+              <Box 
+                sx={{
+                  border: '2px dashed #d1d5db',
+                  borderRadius: 2,
+                  p: 3,
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  '&:hover': { borderColor: '#a855f7' },
+                  transition: 'border-color 0.2s'
+                }}
                 onClick={() => document.getElementById(`file-${column._id}`).click()}
               >
-                <Upload size={24} className="mx-auto mb-2 text-gray-400" />
-                <p className="text-sm text-gray-600">Click to upload image (optional)</p>
-              </div>
+                <Upload sx={{ fontSize: 24, color: '#9ca3af', mb: 1 }} />
+                <Typography variant="body2" color="text.secondary">
+                  Click to upload image (optional)
+                </Typography>
+              </Box>
             )}
             <input
               id={`file-${column._id}`}
               type="file"
               accept="image/*"
               onChange={handleImageUpload}
-              className="hidden"
+              style={{ display: 'none' }}
             />
-          </div>
+          </Box>
 
-          {/* Edit Actions */}
           {isEditing && (
-            <div className="flex gap-2 pt-2">
-              <Button onClick={handleSave} size="sm" className="flex-1">
+            <Box display="flex" gap={1} pt={1}>
+              <Button onClick={handleSave} variant="contained" size="small" fullWidth>
                 Save
               </Button>
-              <Button onClick={handleCancel} variant="outline" size="sm" className="flex-1">
+              <Button onClick={handleCancel} variant="outlined" size="small" fullWidth>
                 Cancel
               </Button>
-            </div>
+            </Box>
           )}
-        </div>
+        </Box>
       </CardContent>
     </Card>
   );

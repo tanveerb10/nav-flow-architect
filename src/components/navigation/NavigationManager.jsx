@@ -13,26 +13,31 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  Button,
+  TextField,
+  Typography,
+  Box,
+  FormControlLabel,
+  Checkbox,
+  Alert,
+  Paper
+} from '@mui/material';
+import {
+  Menu,
+  Save,
+  Warning,
+  Add
+} from '@mui/icons-material';
 import MenuItemCard from './MenuItemCard';
 import DropdownEditor from './DropdownEditor';
-import { Menu, Save, AlertTriangle, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Input } from '@/components/ui/input';
-import { 
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage
-} from '@/components/ui/form';
 import * as yup from 'yup';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 
-// Form schema for adding new menu item using yup
 const menuItemSchema = yup.object({
   title: yup.string().required('Title is required'),
   url: yup.string().required('URL is required'),
@@ -46,8 +51,7 @@ const NavigationManager = ({ initialData }) => {
   const [expandedMenuItems, setExpandedMenuItems] = useState(new Set());
   const { toast } = useToast();
 
-  // Setup form for adding menu item
-  const form = useForm({
+  const { control, handleSubmit, reset, formState: { errors } } = useForm({
     resolver: yupResolver(menuItemSchema),
     defaultValues: {
       title: '',
@@ -56,7 +60,6 @@ const NavigationManager = ({ initialData }) => {
     },
   });
 
-  // Setup sensors for drag and drop
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -64,7 +67,6 @@ const NavigationManager = ({ initialData }) => {
     })
   );
 
-  // Function to update item positions
   const updatePositions = (items) => {
     return items.map((item, index) => ({
       ...item,
@@ -72,12 +74,10 @@ const NavigationManager = ({ initialData }) => {
     }));
   };
 
-  // Function to handle drag start
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
   };
 
-  // Function to handle drag end
   const handleDragEnd = (event) => {
     const { active, over } = event;
     setActiveId(null);
@@ -89,7 +89,6 @@ const NavigationManager = ({ initialData }) => {
 
     console.log('Drag end:', { activeData, overData });
 
-    // Handle menu item reordering
     if (activeData?.type === 'menuItem') {
       setNavigationData(prev => {
         const newMenu = [...prev.menu];
@@ -109,7 +108,6 @@ const NavigationManager = ({ initialData }) => {
       });
     }
 
-    // Handle column reordering
     if (activeData?.type === 'column') {
       const dropdownId = activeData.dropdownId;
       
@@ -143,7 +141,6 @@ const NavigationManager = ({ initialData }) => {
       });
     }
 
-    // Handle link reordering within columns
     if (activeData?.type === 'link') {
       const sourceColumnId = activeData.columnId;
       const targetColumnId = overData?.columnId || sourceColumnId;
@@ -156,14 +153,12 @@ const NavigationManager = ({ initialData }) => {
               const activeIndex = newLinks.findIndex(link => link._id === activeData.link._id);
               
               if (sourceColumnId === targetColumnId) {
-                // Reordering within same column
                 const overIndex = newLinks.findIndex(link => link._id === overData?.link?._id);
                 if (activeIndex !== -1 && overIndex !== -1) {
                   const [movedLink] = newLinks.splice(activeIndex, 1);
                   newLinks.splice(overIndex, 0, movedLink);
                 }
               } else {
-                // Moving to different column (remove from source)
                 newLinks.splice(activeIndex, 1);
               }
               
@@ -174,7 +169,6 @@ const NavigationManager = ({ initialData }) => {
             }
             
             if (column._id === targetColumnId && sourceColumnId !== targetColumnId) {
-              // Add to target column
               const newLinks = [...column.links, activeData.link];
               const overIndex = overData?.link ? 
                 newLinks.findIndex(link => link._id === overData.link._id) : 
@@ -211,7 +205,6 @@ const NavigationManager = ({ initialData }) => {
     }
   };
 
-  // Function to handle drag over
   const handleDragOver = (event) => {
     const { active, over } = event;
     if (!over) return;
@@ -219,7 +212,6 @@ const NavigationManager = ({ initialData }) => {
     const activeData = active.data.current;
     const overData = over.data.current;
 
-    // Prevent dropping columns if it would exceed 4 columns
     if (activeData?.type === 'column') {
       const targetDropdownId = overData?.dropdownId || activeData.dropdownId;
       const sourceDropdownId = activeData.dropdownId;
@@ -238,28 +230,21 @@ const NavigationManager = ({ initialData }) => {
     }
   };
 
-  // Function to handle deleting a menu item
   const handleDeleteMenuItem = (menuItemId) => {
-    setNavigationData(prev => {
-      // Find the menu item to get its title
-      const menuItem = prev.menu.find(item => item._id === menuItemId);
+    const menuItem = navigationData.menu.find(item => item._id === menuItemId);
       
-      // Remove the menu item
-      const newMenu = prev.menu.filter(item => item._id !== menuItemId);
+    const newMenu = navigationData.menu.filter(item => item._id !== menuItemId);
       
-      // Remove associated dropdown if it exists
-      const newDropdowns = menuItem?.hasDropdown 
-        ? prev.dropdowns.filter(dropdown => dropdown.menuTitle !== menuItem.title)
-        : prev.dropdowns;
+    const newDropdowns = menuItem?.hasDropdown 
+      ? navigationData.dropdowns.filter(dropdown => dropdown.menuTitle !== menuItem.title)
+      : navigationData.dropdowns;
       
-      return {
-        ...prev,
-        menu: updatePositions(newMenu),
-        dropdowns: newDropdowns,
-      };
-    });
+    setNavigationData(prev => ({
+      ...prev,
+      menu: updatePositions(newMenu),
+      dropdowns: newDropdowns,
+    }));
 
-    // Remove from expanded items
     setExpandedMenuItems(prev => {
       const newSet = new Set(prev);
       newSet.delete(menuItemId);
@@ -272,7 +257,6 @@ const NavigationManager = ({ initialData }) => {
     });
   };
 
-  // Function to handle toggling menu item expansion
   const handleToggleExpanded = (menuItemId) => {
     setExpandedMenuItems(prev => {
       const newSet = new Set(prev);
@@ -285,7 +269,6 @@ const NavigationManager = ({ initialData }) => {
     });
   };
 
-  // Function to handle updating a link
   const handleUpdateLink = (linkId, updatedData) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
@@ -321,15 +304,11 @@ const NavigationManager = ({ initialData }) => {
     });
   };
 
-  // Function to handle adding a column
   const handleAddColumn = (dropdownId, columnType = 'links') => {
     setNavigationData(prev => {
-      // Check if dropdown exists
       let targetDropdown = prev.dropdowns.find(d => d._id === dropdownId);
       
-      // If dropdown doesn't exist, create it
       if (!targetDropdown) {
-        // Find the menu item that should have this dropdown
         const menuItem = prev.menu.find(item => item.hasDropdown && `dropdown-${item.title}` === dropdownId);
         if (menuItem) {
           const newDropdown = {
@@ -340,17 +319,14 @@ const NavigationManager = ({ initialData }) => {
             },
           };
           
-          // Add the new dropdown to the list
           const newDropdowns = [...prev.dropdowns, newDropdown];
           targetDropdown = newDropdown;
           
-          // Update the data with the new dropdown
           const updatedData = {
             ...prev,
             dropdowns: newDropdowns,
           };
           
-          // Now add the column to this new dropdown
           const newColumn = {
             _id: `col-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             type: columnType,
@@ -386,7 +362,6 @@ const NavigationManager = ({ initialData }) => {
           };
         }
       } else {
-        // Dropdown exists, add column to it
         const newDropdowns = prev.dropdowns.map(dropdown => {
           if (dropdown._id === dropdownId) {
             const columns = dropdown.dropdown.columns || [];
@@ -433,7 +408,6 @@ const NavigationManager = ({ initialData }) => {
     });
   };
 
-  // Function to handle removing a column
   const handleRemoveColumn = (dropdownId, columnId) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
@@ -463,7 +437,6 @@ const NavigationManager = ({ initialData }) => {
     });
   };
 
-  // Function to handle deleting a link
   const handleDeleteLink = (dropdownId, columnId, linkId) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
@@ -502,7 +475,6 @@ const NavigationManager = ({ initialData }) => {
     });
   };
 
-  // Function to handle adding a link
   const handleAddLink = (dropdownId, columnId) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
@@ -547,7 +519,6 @@ const NavigationManager = ({ initialData }) => {
     });
   };
 
-  // Function to handle updating a column
   const handleUpdateColumn = (dropdownId, columnId, updatedData) => {
     setNavigationData(prev => {
       const newDropdowns = prev.dropdowns.map(dropdown => {
@@ -585,7 +556,6 @@ const NavigationManager = ({ initialData }) => {
     });
   };
 
-  // Function to handle adding a new menu item
   const handleAddMenuItem = (values) => {
     const newMenuItem = {
       title: values.title,
@@ -600,7 +570,7 @@ const NavigationManager = ({ initialData }) => {
       menu: [...prev.menu, newMenuItem],
     }));
 
-    form.reset();
+    reset();
     setIsAddingMenu(false);
     
     toast({
@@ -609,7 +579,6 @@ const NavigationManager = ({ initialData }) => {
     });
   };
 
-  // Function to handle saving navigation data
   const handleSave = () => {
     console.log('Saving navigation data:', navigationData);
     toast({
@@ -618,24 +587,26 @@ const NavigationManager = ({ initialData }) => {
     });
   };
 
-  // Get all menu item IDs
   const menuItemIds = navigationData.menu.map(item => item._id);
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Menu size={24} className="text-blue-600" />
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Navigation Manager</h1>
-            <p className="text-gray-600">Manage your website's navigation structure</p>
-          </div>
-        </div>
-        <Button onClick={handleSave} className="flex items-center gap-2">
-          <Save size={16} />
+    <Box sx={{ maxWidth: '1280px', mx: 'auto', p: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <Box display="flex" alignItems="center" justifyContent="space-between">
+        <Box display="flex" alignItems="center" gap={2}>
+          <Menu sx={{ fontSize: 24, color: '#2563eb' }} />
+          <Box>
+            <Typography variant="h4" fontWeight="bold" color="text.primary">
+              Navigation Manager
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Manage your website's navigation structure
+            </Typography>
+          </Box>
+        </Box>
+        <Button onClick={handleSave} variant="contained" startIcon={<Save />}>
           Save Changes
         </Button>
-      </div>
+      </Box>
 
       <DndContext
         sensors={sensors}
@@ -645,113 +616,121 @@ const NavigationManager = ({ initialData }) => {
         onDragOver={handleDragOver}
       >
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">Main Menu Items</h2>
-              <p className="text-sm text-gray-600">
-                {navigationData.menu.length > 0 
-                  ? "Drag to reorder menu items" 
-                  : "Start by adding your first menu item"}
-              </p>
-            </div>
-            
-            <Button 
-              onClick={() => setIsAddingMenu(!isAddingMenu)} 
-              variant="outline" 
-              className="flex items-center gap-2"
-            >
-              <Plus size={16} />
-              {navigationData.menu.length === 0 ? "Add Menu Item" : "Add Menu Item"}
-            </Button>
-          </CardHeader>
+          <Box sx={{ p: 2, borderBottom: '1px solid #e5e7eb' }}>
+            <Box display="flex" alignItems="center" justifyContent="space-between">
+              <Box>
+                <Typography variant="h6" fontWeight="semibold" color="text.primary">
+                  Main Menu Items
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {navigationData.menu.length > 0 
+                    ? "Drag to reorder menu items" 
+                    : "Start by adding your first menu item"}
+                </Typography>
+              </Box>
+              
+              <Button 
+                onClick={() => setIsAddingMenu(!isAddingMenu)} 
+                variant="outlined" 
+                startIcon={<Add />}
+              >
+                Add Menu Item
+              </Button>
+            </Box>
+          </Box>
           
           <CardContent>
             {navigationData.menu.length === 0 && !isAddingMenu && (
-              <div className="text-center py-12">
-                <Menu size={48} className="mx-auto mb-4 text-gray-300" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No menu items yet</h3>
-                <p className="text-gray-600 mb-6">Start building your navigation by adding your first menu item.</p>
+              <Box textAlign="center" py={6}>
+                <Menu sx={{ fontSize: 48, color: '#d1d5db', mb: 2 }} />
+                <Typography variant="h6" fontWeight="medium" color="text.primary" mb={1}>
+                  No menu items yet
+                </Typography>
+                <Typography variant="body2" color="text.secondary" mb={3}>
+                  Start building your navigation by adding your first menu item.
+                </Typography>
                 <Button 
                   onClick={() => setIsAddingMenu(true)} 
-                  className="flex items-center gap-2"
+                  variant="contained"
+                  startIcon={<Add />}
                 >
-                  <Plus size={16} />
                   Add Menu Item
                 </Button>
-              </div>
+              </Box>
             )}
 
             {isAddingMenu && (
-              <Card className="mb-6 border-blue-200 bg-blue-50">
-                <CardContent className="pt-6">
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(handleAddMenuItem)} className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
+              <Card sx={{ mb: 3, bgcolor: '#eff6ff', border: '1px solid #bfdbfe' }}>
+                <CardContent>
+                  <form onSubmit={handleSubmit(handleAddMenuItem)}>
+                    <Box display="flex" flexDirection="column" gap={2}>
+                      <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr' }} gap={2}>
+                        <Controller
                           name="title"
+                          control={control}
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Menu Title</FormLabel>
-                              <FormControl>
-                                <Input placeholder="e.g. Products" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
+                            <TextField
+                              {...field}
+                              label="Menu Title"
+                              placeholder="e.g. Products"
+                              size="small"
+                              error={!!errors.title}
+                              helperText={errors.title?.message}
+                            />
                           )}
                         />
                         
-                        <FormField
-                          control={form.control}
+                        <Controller
                           name="url"
+                          control={control}
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>URL</FormLabel>
-                              <FormControl>
-                                <Input placeholder="/products" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
+                            <TextField
+                              {...field}
+                              label="URL"
+                              placeholder="/products"
+                              size="small"
+                              error={!!errors.url}
+                              helperText={errors.url?.message}
+                            />
                           )}
                         />
-                      </div>
+                      </Box>
                       
-                      <div className="flex items-center gap-2">
-                        <input
-                          id="hasDropdown"
-                          type="checkbox"
-                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          checked={form.watch("hasDropdown")}
-                          onChange={e => form.setValue("hasDropdown", e.target.checked)}
-                        />
-                        <label htmlFor="hasDropdown" className="text-sm text-gray-700">
-                          Has dropdown menu
-                        </label>
-                      </div>
+                      <Controller
+                        name="hasDropdown"
+                        control={control}
+                        render={({ field }) => (
+                          <FormControlLabel
+                            control={<Checkbox {...field} checked={field.value} />}
+                            label="Has dropdown menu"
+                          />
+                        )}
+                      />
                       
-                      <div className="flex justify-end space-x-2 pt-2">
+                      <Box display="flex" justifyContent="flex-end" gap={1} pt={1}>
                         <Button 
                           type="button" 
-                          variant="ghost" 
+                          variant="text" 
                           onClick={() => setIsAddingMenu(false)}
                         >
                           Cancel
                         </Button>
-                        <Button type="submit">Add Menu Item</Button>
-                      </div>
-                    </form>
-                  </Form>
+                        <Button type="submit" variant="contained">
+                          Add Menu Item
+                        </Button>
+                      </Box>
+                    </Box>
+                  </form>
                 </CardContent>
               </Card>
             )}
             
             {navigationData.menu.length > 0 && (
-              <div className="space-y-4">
+              <Box display="flex" flexDirection="column" gap={2}>
                 <SortableContext items={menuItemIds} strategy={verticalListSortingStrategy}>
                   {navigationData.menu
                     .sort((a, b) => a.position - b.position)
                     .map((item) => {
-                      // Find the dropdown for this menu item if it exists
                       const itemDropdown = item.hasDropdown 
                         ? navigationData.dropdowns.find(d => d.menuTitle === item.title)
                         : null;
@@ -782,43 +761,42 @@ const NavigationManager = ({ initialData }) => {
                       );
                     })}
                 </SortableContext>
-              </div>
+              </Box>
             )}
           </CardContent>
         </Card>
 
         <DragOverlay>
           {activeId ? (
-            <div className="opacity-90 rotate-3 transform scale-105">
-              <Card className="shadow-lg">
-                <CardContent className="p-4">
-                  <div className="text-sm font-medium text-gray-600">
+            <Box sx={{ opacity: 0.9, transform: 'rotate(3deg) scale(1.05)' }}>
+              <Card sx={{ boxShadow: 3 }}>
+                <CardContent sx={{ p: 2 }}>
+                  <Typography variant="body2" fontWeight="medium" color="text.secondary">
                     Dragging item...
-                  </div>
+                  </Typography>
                 </CardContent>
               </Card>
-            </div>
+            </Box>
           ) : null}
         </DragOverlay>
       </DndContext>
 
-      <Card className="bg-orange-50 border-orange-200">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-3">
-            <AlertTriangle size={20} className="text-orange-600 mt-0.5" />
-            <div>
-              <h3 className="font-medium text-orange-900 mb-1">Constraints</h3>
-              <p className="text-sm text-orange-800">
-                • Maximum of 4 columns allowed per dropdown menu<br />
-                • Positions are automatically updated after reordering<br />
-                • All changes are preserved in the original data structure<br />
-                • Dropdown columns can be expanded/collapsed for better management
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+      <Alert 
+        severity="warning" 
+        sx={{ bgcolor: '#fef3c7', border: '1px solid #fbbf24', color: '#92400e' }}
+        icon={<Warning sx={{ color: '#d97706' }} />}
+      >
+        <Typography variant="body2" fontWeight="medium" sx={{ mb: 0.5 }}>
+          Constraints
+        </Typography>
+        <Typography variant="body2">
+          • Maximum of 4 columns allowed per dropdown menu<br />
+          • Positions are automatically updated after reordering<br />
+          • All changes are preserved in the original data structure<br />
+          • Dropdown columns can be expanded/collapsed for better management
+        </Typography>
+      </Alert>
+    </Box>
   );
 };
 
