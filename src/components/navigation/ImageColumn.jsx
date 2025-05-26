@@ -37,6 +37,15 @@ const ImageColumn = ({ column, dropdownId, onUpdateColumn, onRemoveColumn }) => 
   };
 
   const handleSave = () => {
+    if (!tempData.linkUrl.trim()) {
+      toast({
+        title: "Link URL required",
+        description: "Please enter a link URL for this image column.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     onUpdateColumn(dropdownId, column._id, {
       title: tempData.title,
       image: {
@@ -64,6 +73,21 @@ const ImageColumn = ({ column, dropdownId, onUpdateColumn, onRemoveColumn }) => 
 
   const handleRemove = () => {
     onRemoveColumn(dropdownId, column._id);
+  };
+
+  const handleLinkUrlChange = (newUrl) => {
+    if (!isEditing) {
+      // Direct update when not in editing mode
+      onUpdateColumn(dropdownId, column._id, {
+        image: {
+          ...column.image,
+          linkUrl: newUrl,
+        }
+      });
+    } else {
+      // Update temp data when in editing mode
+      setTempData(prev => ({ ...prev, linkUrl: newUrl }));
+    }
   };
 
   return (
@@ -109,9 +133,26 @@ const ImageColumn = ({ column, dropdownId, onUpdateColumn, onRemoveColumn }) => 
         </div>
 
         <div className="space-y-3">
-          {/* Image Upload */}
+          {/* Link URL - Required and always editable */}
           <div>
-            <Label className="text-xs text-gray-600 mb-1 block">Image</Label>
+            <Label className="text-xs text-gray-600 mb-1 block">
+              Link URL <span className="text-red-500">*</span>
+            </Label>
+            <div className="flex items-center gap-2">
+              <Link size={16} className="text-gray-400" />
+              <Input
+                value={isEditing ? tempData.linkUrl : (column.image?.linkUrl || '')}
+                onChange={(e) => handleLinkUrlChange(e.target.value)}
+                placeholder="https://example.com"
+                className="h-8 text-sm"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Image Upload - Optional */}
+          <div>
+            <Label className="text-xs text-gray-600 mb-1 block">Image (optional)</Label>
             {column.image?.url ? (
               <div className="relative">
                 <img 
@@ -135,7 +176,7 @@ const ImageColumn = ({ column, dropdownId, onUpdateColumn, onRemoveColumn }) => 
                 onClick={() => document.getElementById(`file-${column._id}`).click()}
               >
                 <Upload size={24} className="mx-auto mb-2 text-gray-400" />
-                <p className="text-sm text-gray-600">Click to upload image</p>
+                <p className="text-sm text-gray-600">Click to upload image (optional)</p>
               </div>
             )}
             <input
@@ -160,29 +201,6 @@ const ImageColumn = ({ column, dropdownId, onUpdateColumn, onRemoveColumn }) => 
             ) : (
               <div className="min-h-[32px] px-3 py-2 border rounded-md bg-white text-sm text-gray-700">
                 {column.image?.altText || 'No alt text'}
-              </div>
-            )}
-          </div>
-
-          {/* Link URL */}
-          <div>
-            <Label className="text-xs text-gray-600 mb-1 block">Link URL (optional)</Label>
-            {isEditing ? (
-              <div className="flex gap-2">
-                <Link size={16} className="text-gray-400 mt-2" />
-                <Input
-                  value={tempData.linkUrl}
-                  onChange={(e) => setTempData(prev => ({ ...prev, linkUrl: e.target.value }))}
-                  placeholder="https://example.com"
-                  className="h-8 text-sm"
-                />
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 min-h-[32px] px-3 py-2 border rounded-md bg-white">
-                <Link size={14} className="text-gray-400" />
-                <span className="text-sm text-gray-700">
-                  {column.image?.linkUrl || 'No link'}
-                </span>
               </div>
             )}
           </div>
