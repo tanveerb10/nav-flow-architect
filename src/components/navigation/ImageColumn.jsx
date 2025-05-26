@@ -46,6 +46,15 @@ const ImageColumn = ({ column, dropdownId, onUpdateColumn, onRemoveColumn }) => 
       return;
     }
 
+    if (!tempData.altText.trim()) {
+      toast({
+        title: "Alt text required",
+        description: "Please enter alt text for this image column.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     onUpdateColumn(dropdownId, column._id, {
       title: tempData.title,
       image: {
@@ -87,6 +96,21 @@ const ImageColumn = ({ column, dropdownId, onUpdateColumn, onRemoveColumn }) => 
     } else {
       // Update temp data when in editing mode
       setTempData(prev => ({ ...prev, linkUrl: newUrl }));
+    }
+  };
+
+  const handleAltTextChange = (newAltText) => {
+    if (!isEditing) {
+      // Direct update when not in editing mode
+      onUpdateColumn(dropdownId, column._id, {
+        image: {
+          ...column.image,
+          altText: newAltText,
+        }
+      });
+    } else {
+      // Update temp data when in editing mode
+      setTempData(prev => ({ ...prev, altText: newAltText }));
     }
   };
 
@@ -150,6 +174,20 @@ const ImageColumn = ({ column, dropdownId, onUpdateColumn, onRemoveColumn }) => 
             </div>
           </div>
 
+          {/* Alt Text - Required and always editable */}
+          <div>
+            <Label className="text-xs text-gray-600 mb-1 block">
+              Alt Text <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              value={isEditing ? tempData.altText : (column.image?.altText || '')}
+              onChange={(e) => handleAltTextChange(e.target.value)}
+              placeholder="Describe the image"
+              className="h-8 text-sm"
+              required
+            />
+          </div>
+
           {/* Image Upload - Optional */}
           <div>
             <Label className="text-xs text-gray-600 mb-1 block">Image (optional)</Label>
@@ -186,23 +224,6 @@ const ImageColumn = ({ column, dropdownId, onUpdateColumn, onRemoveColumn }) => 
               onChange={handleImageUpload}
               className="hidden"
             />
-          </div>
-
-          {/* Alt Text */}
-          <div>
-            <Label className="text-xs text-gray-600 mb-1 block">Alt Text (optional)</Label>
-            {isEditing ? (
-              <Input
-                value={tempData.altText}
-                onChange={(e) => setTempData(prev => ({ ...prev, altText: e.target.value }))}
-                placeholder="Describe the image"
-                className="h-8 text-sm"
-              />
-            ) : (
-              <div className="min-h-[32px] px-3 py-2 border rounded-md bg-white text-sm text-gray-700">
-                {column.image?.altText || 'No alt text'}
-              </div>
-            )}
           </div>
 
           {/* Edit Actions */}
