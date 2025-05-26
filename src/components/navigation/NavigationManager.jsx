@@ -356,7 +356,8 @@ const NavigationManager = ({ initialData }) => {
           if (columnType === 'image') {
             newColumn.image = {
               url: '',
-              altText: 'Dropdown image',
+              altText: '',
+              linkUrl: ''
             };
           }
           
@@ -395,7 +396,8 @@ const NavigationManager = ({ initialData }) => {
             if (columnType === 'image') {
               newColumn.image = {
                 url: '',
-                altText: 'Dropdown image',
+                altText: '',
+                linkUrl: ''
               };
             }
             
@@ -633,7 +635,11 @@ const NavigationManager = ({ initialData }) => {
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Main Menu Items</h2>
-              <p className="text-sm text-gray-600">Drag to reorder menu items</p>
+              <p className="text-sm text-gray-600">
+                {navigationData.menu.length > 0 
+                  ? "Drag to reorder menu items" 
+                  : "Start by adding your first menu item"}
+              </p>
             </div>
             
             <Button 
@@ -642,11 +648,26 @@ const NavigationManager = ({ initialData }) => {
               className="flex items-center gap-2"
             >
               <Plus size={16} />
-              Add Menu Item
+              {navigationData.menu.length === 0 ? "Add Menu Item" : "Add Menu Item"}
             </Button>
           </CardHeader>
           
           <CardContent>
+            {navigationData.menu.length === 0 && !isAddingMenu && (
+              <div className="text-center py-12">
+                <Menu size={48} className="mx-auto mb-4 text-gray-300" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No menu items yet</h3>
+                <p className="text-gray-600 mb-6">Start building your navigation by adding your first menu item.</p>
+                <Button 
+                  onClick={() => setIsAddingMenu(true)} 
+                  className="flex items-center gap-2"
+                >
+                  <Plus size={16} />
+                  Add Menu Item
+                </Button>
+              </div>
+            )}
+
             {isAddingMenu && (
               <Card className="mb-6 border-blue-200 bg-blue-50">
                 <CardContent className="pt-6">
@@ -711,43 +732,45 @@ const NavigationManager = ({ initialData }) => {
               </Card>
             )}
             
-            <div className="space-y-4">
-              <SortableContext items={menuItemIds} strategy={verticalListSortingStrategy}>
-                {navigationData.menu
-                  .sort((a, b) => a.position - b.position)
-                  .map((item) => {
-                    // Find the dropdown for this menu item if it exists
-                    const itemDropdown = item.hasDropdown 
-                      ? navigationData.dropdowns.find(d => d.menuTitle === item.title)
-                      : null;
-                    
-                    const isExpanded = expandedMenuItems.has(item._id);
-                    
-                    return (
-                      <div key={item._id}>
-                        <MenuItemCard 
-                          item={item} 
-                          dropdown={itemDropdown}
-                          isExpanded={isExpanded}
-                          onAddColumn={handleAddColumn}
-                          onDeleteMenuItem={handleDeleteMenuItem}
-                          onToggleExpanded={handleToggleExpanded}
-                        />
-                        {item.hasDropdown && itemDropdown && isExpanded && (
-                          <DropdownEditor
+            {navigationData.menu.length > 0 && (
+              <div className="space-y-4">
+                <SortableContext items={menuItemIds} strategy={verticalListSortingStrategy}>
+                  {navigationData.menu
+                    .sort((a, b) => a.position - b.position)
+                    .map((item) => {
+                      // Find the dropdown for this menu item if it exists
+                      const itemDropdown = item.hasDropdown 
+                        ? navigationData.dropdowns.find(d => d.menuTitle === item.title)
+                        : null;
+                      
+                      const isExpanded = expandedMenuItems.has(item._id);
+                      
+                      return (
+                        <div key={item._id}>
+                          <MenuItemCard 
+                            item={item} 
                             dropdown={itemDropdown}
-                            onUpdateLink={handleUpdateLink}
-                            onDeleteLink={handleDeleteLink}
-                            onAddLink={handleAddLink}
-                            onUpdateColumn={handleUpdateColumn}
-                            onRemoveColumn={handleRemoveColumn}
+                            isExpanded={isExpanded}
+                            onAddColumn={handleAddColumn}
+                            onDeleteMenuItem={handleDeleteMenuItem}
+                            onToggleExpanded={handleToggleExpanded}
                           />
-                        )}
-                      </div>
-                    );
-                  })}
-              </SortableContext>
-            </div>
+                          {item.hasDropdown && itemDropdown && isExpanded && (
+                            <DropdownEditor
+                              dropdown={itemDropdown}
+                              onUpdateLink={handleUpdateLink}
+                              onDeleteLink={handleDeleteLink}
+                              onAddLink={handleAddLink}
+                              onUpdateColumn={handleUpdateColumn}
+                              onRemoveColumn={handleRemoveColumn}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
+                </SortableContext>
+              </div>
+            )}
           </CardContent>
         </Card>
 
